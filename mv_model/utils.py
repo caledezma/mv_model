@@ -79,7 +79,7 @@ def get_model_parameters(cell_type: str):
             w_inf_star=0.78,
         )
     if cell_type == "m":
-                return MVParams(
+        return MVParams(
             u_o=0,
             u_u=1.61,
             th_v=0.3,
@@ -109,7 +109,6 @@ def get_model_parameters(cell_type: str):
             tau_w_inf=0.01,
             w_inf_star=0.5,
         )
-
 
 
 def heaviside(x):
