@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from scipy.integrate import solve_ivp
-from tqdm import tqdm
 
 from mv_model.model import mv_model
 from mv_model.utils import MVParams, get_initial_conditions, get_model_parameters,transform_u_to_ap
@@ -23,25 +22,29 @@ def run_model(
     state_vars = []
     currents = []
     y0 = get_initial_conditions()
-    for cycle_num in tqdm(range(num_cycles), desc="Computing AP signal"):
-        this_cycle = solve_ivp(
-            fun=mv_model,
-            t_span=(0, cycle_length),
-            y0=y0,
-            args=(params, True),
-            first_step=0.01,
-            max_step=1,
-        )
-        t.append(np.array(this_cycle.t) + cycle_length*cycle_num)
-        state_vars.append(np.array(this_cycle.y))
-        this_currents = mv_model(
-            t=this_cycle.t,
-            state_vars=this_cycle.y,
-            params=params,
-            ret_ode=False
-        )
-        y0 = [state_var[-1] for state_var in this_cycle.y]
-        currents.append(this_currents)
+    with click.progressbar(
+        range(num_cycles),
+        label="Computing AP signals"
+    ) as cycles:
+        for cycle_num in cycles:
+            this_cycle = solve_ivp(
+                fun=mv_model,
+                t_span=(0, cycle_length),
+                y0=y0,
+                args=(params, True),
+                first_step=0.01,
+                max_step=1,
+            )
+            t.append(np.array(this_cycle.t) + cycle_length*cycle_num)
+            state_vars.append(np.array(this_cycle.y))
+            this_currents = mv_model(
+                t=this_cycle.t,
+                state_vars=this_cycle.y,
+                params=params,
+                ret_ode=False
+            )
+            y0 = [state_var[-1] for state_var in this_cycle.y]
+            currents.append(this_currents)
     return np.concatenate(t), np.concatenate(state_vars, axis=1).T, np.concatenate(currents, axis=0)
 
 
