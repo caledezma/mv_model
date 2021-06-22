@@ -50,7 +50,7 @@ python examples/run_model_example.py 10 1000 endo examples/figs
 python examples/run_model_example.py 10 1000 m examples/figs
 ```
 
-is provided in `examples/figs`
+are provided in `examples/figs`
 
 A jupyter notebook is also provided. This notebook can be used for a closer inspection of the
 outputs of the model.
