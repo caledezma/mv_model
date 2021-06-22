@@ -3,16 +3,26 @@
 from typing import NamedTuple, List
 
 import numpy as np
+import numpy.typing as npt
 
 from .utils import MVParams, heaviside
 
 def mv_model(
-    t: float,
-    state_vars: List[float],
+    t: npt.ArrayLike,
+    state_vars: npt.ArrayLike,
     params: MVParams,
     ret_ode: bool,
-):
-    """ODEs for the minimal ventricular model.
+) -> npt.ArrayLike:
+    """ODEs for the minimal ventricular model. The signature of this function is such that it will
+    work with scipy.integrate.solve_ivp:
+
+    :param t: time.
+    :param state_vars: state variables for the model (u, v, w, s).
+    :param params: parameters that define the cell-type being simulated.
+    :param ret_ode: whether to return the state variables (when solving the ODEs) or the currents
+    (used when inspecting results)
+    :return: either the derivative of the state variables with respect to time or the three currents
+    plus the stimulation signal.
     """
     u, v, w, s = state_vars
 
@@ -36,7 +46,7 @@ def mv_model(
         (1 - heaviside(u-params.th_o))*params.tau_o1 +
         heaviside(u-params.th_o)*params.tau_o2
     )
-    v_inf = 1 if u < params.th_v_minus else 0
+    v_inf = u < params.th_v_minus
     w_inf = (
         (1 - heaviside(u-params.th_o))*(1-u/params.tau_w_inf) +
         heaviside(u-params.th_o)*params.w_inf_star
@@ -45,7 +55,7 @@ def mv_model(
     Jso = (u-params.u_o)*(1-heaviside(u-params.th_w)) / tau_o + heaviside(u-params.th_w)/tau_so
     Jsi = -heaviside(u-params.th_w)*w*s/params.tau_si
 
-    Jstim = 0.4 if t < 1 else 0
+    Jstim = (t < 1) * 0.4
 
     du = -(Jfi + Jso + Jsi) + Jstim
     dv = (
@@ -59,5 +69,5 @@ def mv_model(
     ds = ((1+np.tanh(params.kappa_s*(u-params.u_s)))/2 - s)/tau_s
 
     if ret_ode:
-        return [du, dv, dw, ds]
-    return [Jfi, Jso, Jsi, Jstim]
+        return np.array([du, dv, dw, ds]).T
+    return np.array([Jfi, Jso, Jsi, Jstim]).T

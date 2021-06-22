@@ -2,6 +2,7 @@
 """
 
 from typing import NamedTuple
+from numpy import heaviside as np_heaviside
 
 class MVParams(NamedTuple):
     """Parameters for the MV model, defaults to endocardial cells.
@@ -114,4 +115,10 @@ def get_model_parameters(cell_type: str):
 def heaviside(x):
     """Standard heaviside function.
     """
-    return 1 if x >= 0 else 0
+    return np_heaviside(x, 0)
+
+
+def transform_u_to_ap(u):
+    """Return the action potential in mV given state variable u.
+    """
+    return u*85.7 - 84
