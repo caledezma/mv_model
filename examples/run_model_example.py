@@ -11,7 +11,7 @@ from scipy.integrate import solve_ivp
 from tqdm import tqdm
 
 from mv_model.model import mv_model
-from mv_model.utils import MVParams, get_initial_conditions, get_model_parameters, transform_u_to_ap
+from mv_model.utils import MVParams, get_initial_conditions, get_model_parameters,transform_u_to_ap
 
 
 def run_model(

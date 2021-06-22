@@ -1,8 +1,10 @@
 """Generic useful functions for the MV models.
 """
-
 from typing import NamedTuple, List
+
 import numpy as np
+import numpy.typing as npt
+
 
 class MVParams(NamedTuple):
     """Parameters for the MV model, defaults to endocardial cells.
@@ -113,13 +115,13 @@ def get_model_parameters(cell_type: str) -> MVParams:
     raise ValueError(f"Cell type ({cell_type}) not recognised")
 
 
-def heaviside(x: np.typing.NDArray[np.float_]) -> np.typing.NDArray[np.float_]:
+def heaviside(x: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
     """Standard heaviside function.
     """
     return np.heaviside(x, 0).astype(np.float_)
 
 
-def transform_u_to_ap(u: np.typing.NDArray[np.float_]) -> np.typing.NDArray[np.float_]:
+def transform_u_to_ap(u: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
     """Return the action potential in mV given state variable u.
     """
     return u*85.7 - 8
