@@ -1,33 +1,32 @@
 """Runs the MV model.
 """
+import os
+
+import click
 import matplotlib.pyplot as plt
 from numpy import array, concatenate
 from scipy.integrate import solve_ivp
 from tqdm import tqdm
-import pdb
 
 from mv_model.model import mv_model
 from mv_model.utils import MVParams, get_initial_conditions, get_model_parameters, transform_u_to_ap
 
-CELL_TYPE="m"
 
-
-params = get_model_parameters(cell_type=CELL_TYPE)
-def run_model(num_cycles, cl):
+def run_model(num_cycles, cycle_length, params):
     t = []
     state_vars = []
     currents = []
     y0 = get_initial_conditions()
-    for cycle_num in tqdm(range(num_cycles), desc="Computing AP"):
+    for cycle_num in tqdm(range(num_cycles), desc="Computing AP signal"):
         this_cycle = solve_ivp(
             fun=mv_model,
-            t_span=(0, cl),
+            t_span=(0, cycle_length),
             y0=y0,
             args=(params, True),
             first_step=0.01,
             max_step=1,
         )
-        t.append(array(this_cycle.t) + cl*cycle_num)
+        t.append(array(this_cycle.t) + cycle_length*cycle_num)
         state_vars.append(array(this_cycle.y))
         this_currents = mv_model(
             t=this_cycle.t,
@@ -39,15 +38,51 @@ def run_model(num_cycles, cl):
         currents.append(this_currents)
     return concatenate(t), concatenate(state_vars, axis=1).T, concatenate(currents, axis=0)
 
-t1000, state_vars1000, currents1000 = run_model(num_cycles=5, cl=1000)
-t500, state_vars500, currents500 = run_model(num_cycles=10, cl=500)
 
-fig = plt.figure()
-plt.plot(t1000, transform_u_to_ap(state_vars1000[:,0]))
-plt.plot(t500, transform_u_to_ap(state_vars500[:,0]))
-plt.savefig(f"ap_{CELL_TYPE}.png")
+@click.command()
+@click.argument("num_cycles", type=int)
+@click.argument("cycle_length", type=int)
+@click.argument("cell_type", type=click.Choice(['epi', 'endo', 'm'], case_sensitive=True))
+@click.argument("outdir", type=click.Path(exists=True))
+def test_mv_model(num_cycles, cycle_length, cell_type, outdir):
+    """Run the minimal model for human ventricular action potentials in tissue with a regular
+    stimulation pattern. Use this CLI to test the different cell types at different cycle lengths
+    and for different numbers of cycles.
 
-fig = plt.figure()
-plt.plot(t1000, state_vars1000, label=['u', 'v', 'w', 's'])
-plt.plot(t500, state_vars500)
-plt.savefig(f"state_vars_{CELL_TYPE}.png")
+    NUM_CYCLES number of cycles to simulate.
+    CYCLE_LENGTH time, in ms, between stimulations.
+    CELL_TYPE which myocardial cell is being simulated.
+    OUTDIR directory where the outputs of the model will be saved.
+    """
+    t, state_vars, currents = run_model(
+        num_cycles=num_cycles,
+        cycle_length=cycle_length,
+        params=get_model_parameters(cell_type=cell_type)
+    )
+    file_end = f"{cell_type}_{cycle_length}cl_{num_cycles}cycles.png"
+    plt.figure(figsize=(20, 5))
+    plt.plot(t, transform_u_to_ap(state_vars[:,0]))
+    plt.title("Action potential produced by the Minimal Model")
+    plt.ylabel("Action Potential (mV)")
+    plt.xlabel("Time (ms)")
+    plt.savefig(os.path.join(outdir, f"ap_{file_end}"))
+
+    plt.figure(figsize=(20, 5))
+    plt.plot(t, state_vars[:,1:], label=['v', 'w', 's'])
+    plt.title("State variables of the Minimal Model")
+    plt.ylabel("Value (dimensionless)")
+    plt.xlabel("Time (ms)")
+    plt.legend()
+    plt.savefig(os.path.join(outdir, f"state_vars_{file_end}"))
+
+    plt.figure(figsize=(20, 5))
+    plt.plot(t, currents, label=['J_{fi}', 'J_{so}', 'J_{si}', 'I_{stim}'])
+    plt.title("Currents of the Minimal Model")
+    plt.ylabel("Value (dimensionless)")
+    plt.xlabel("Time (ms)")
+    plt.legend()
+    plt.savefig(os.path.join(outdir, f"currents_{file_end}"))
+
+
+if __name__ == "__main__":
+    test_mv_model()

@@ -110,6 +110,7 @@ def get_model_parameters(cell_type: str):
             tau_w_inf=0.01,
             w_inf_star=0.5,
         )
+    raise ValueError(f"Cell type ({cell_type}) not recognised")
 
 
 def heaviside(x):
