@@ -1,7 +1,5 @@
 """Defines the ODEs for the minimal ventricular model.
 """
-from typing import NamedTuple, List
-
 import numpy as np
 import numpy.typing as npt
 
