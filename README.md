@@ -8,4 +8,4 @@ The model can be used to reproduce ventricular action potentials of the three di
 
 For an example of use, check the `main.py`
 
-he
+hey
