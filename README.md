@@ -23,13 +23,19 @@ to the type hints used in the code.
 
 # Example of use
 
-The model is written in a way that is compatible with `scipy.integrate` solvers. Namely, the
-`mv_model.model.mv_model()` function defines the system of ordinary differential equations that
-govern the cell's behaviour. SciPy's solver will then solve these equations in time and provide
-the result.
+The model is written in a way that is compatible with `scipy.integrate.solve_ivp` solvers. Namely,
+the `mv_model.model.mv_model()` function defines the system of ordinary differential equations
+that govern the cell's behaviour. SciPy's solver will then solve these equations in time and
+provide the result.
 
-You can observe how this is done by runnig the `run_model_example.py` command. You can see how to
-run it by doing:
+You can observe how this is done by runnig the `run_model_example.py` command. To run the examples
+you will need to install the repo with the additional packages required for them:
+
+```
+pip install -e .[examples]
+```
+
+You can then use the CLI to run the model:
 
 ```
 python examples/run_model_example.py --help
@@ -45,6 +51,9 @@ python examples/run_model_example.py 10 1000 m examples/figs
 ```
 
 is provided in `examples/figs`
+
+A jupyter notebook is also provided. This notebook can be used for a closer inspection of the
+outputs of the model.
 
 # Type checking
 
