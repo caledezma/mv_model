@@ -1,10 +1,12 @@
 """Runs the MV model.
 """
 import os
+from typing import Tuple
 
 import click
 import matplotlib.pyplot as plt
-from numpy import array, concatenate
+import numpy as np
+import numpy.typing as npt
 from scipy.integrate import solve_ivp
 from tqdm import tqdm
 
@@ -12,7 +14,11 @@ from mv_model.model import mv_model
 from mv_model.utils import MVParams, get_initial_conditions, get_model_parameters, transform_u_to_ap
 
 
-def run_model(num_cycles, cycle_length, params):
+def run_model(
+    num_cycles: int,
+    cycle_length: int,
+    params: MVParams
+) -> Tuple[npt.NDArray[np.float_], ...]:
     t = []
     state_vars = []
     currents = []
@@ -26,8 +32,8 @@ def run_model(num_cycles, cycle_length, params):
             first_step=0.01,
             max_step=1,
         )
-        t.append(array(this_cycle.t) + cycle_length*cycle_num)
-        state_vars.append(array(this_cycle.y))
+        t.append(np.array(this_cycle.t) + cycle_length*cycle_num)
+        state_vars.append(np.array(this_cycle.y))
         this_currents = mv_model(
             t=this_cycle.t,
             state_vars=this_cycle.y,
@@ -36,7 +42,7 @@ def run_model(num_cycles, cycle_length, params):
         )
         y0 = [state_var[-1] for state_var in this_cycle.y]
         currents.append(this_currents)
-    return concatenate(t), concatenate(state_vars, axis=1).T, concatenate(currents, axis=0)
+    return np.concatenate(t), np.concatenate(state_vars, axis=1).T, np.concatenate(currents, axis=0)
 
 
 @click.command()

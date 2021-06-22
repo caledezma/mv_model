@@ -8,11 +8,11 @@ import numpy.typing as npt
 from .utils import MVParams, heaviside
 
 def mv_model(
-    t: npt.ArrayLike,
-    state_vars: npt.ArrayLike,
+    t: npt.NDArray[np.float_],
+    state_vars: npt.NDArray[np.float_],
     params: MVParams,
     ret_ode: bool,
-) -> npt.ArrayLike:
+) -> npt.NDArray[np.float_]:
     """ODEs for the minimal ventricular model. The signature of this function is such that it will
     work with scipy.integrate.solve_ivp:
 
