@@ -1,51 +1,12 @@
 """Runs the MV model.
 """
 import os
-from typing import Tuple
 
 import click
 import matplotlib.pyplot as plt
-import numpy as np
-import numpy.typing as npt
-from scipy.integrate import solve_ivp
 
-from mv_model.model import mv_model
-from mv_model.utils import MVParams, get_initial_conditions, get_model_parameters, transform_u_to_ap
-
-
-def run_model(
-    num_cycles: int,
-    cycle_length: int,
-    params: MVParams
-) -> Tuple[npt.NDArray[np.float_], ...]:
-    t = []
-    state_vars = []
-    currents = []
-    y0 = get_initial_conditions()
-    with click.progressbar(
-        range(num_cycles),
-        label="Computing AP signals"
-    ) as cycles:
-        for cycle_num in cycles:
-            this_cycle = solve_ivp(
-                fun=mv_model,
-                t_span=(0, cycle_length),
-                y0=y0,
-                args=(params, True),
-                first_step=0.01,
-                max_step=1,
-            )
-            t.append(np.array(this_cycle.t) + cycle_length*cycle_num)
-            state_vars.append(np.array(this_cycle.y))
-            this_currents = mv_model(
-                t=this_cycle.t,
-                state_vars=this_cycle.y,
-                params=params,
-                ret_ode=False
-            )
-            y0 = [state_var[-1] for state_var in this_cycle.y]
-            currents.append(this_currents)
-    return np.concatenate(t), np.concatenate(state_vars, axis=1).T, np.concatenate(currents, axis=0)
+from mv_model.utils import transform_u_to_ap
+from examples.utils import run_model
 
 
 @click.command()
@@ -66,7 +27,7 @@ def test_mv_model(num_cycles, cycle_length, cell_type, outdir):
     t, state_vars, currents = run_model(
         num_cycles=num_cycles,
         cycle_length=cycle_length,
-        params=get_model_parameters(cell_type=cell_type)
+        cell_type=cell_type
     )
     file_end = f"{cell_type}_{cycle_length}cl_{num_cycles}cycles.png"
     plt.figure(figsize=(20, 5))
